@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32811.315
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet45", "ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet45\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet45.csproj", "{22F0497E-3FCF-44CE-8EEF-2FF0FBF5DB00}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScanUtilityExample_CommandLineNet9_0", "ScanUtilityExample_CommandLineNet9_0\ScanUtilityExample_CommandLineNet9_0.csproj", "{BB46173C-8489-4925-B533-1CC4F591A01B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0", "ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0.csproj", "{85020AAE-A4E5-0463-4084-127BE1AE81B9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{22F0497E-3FCF-44CE-8EEF-2FF0FBF5DB00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22F0497E-3FCF-44CE-8EEF-2FF0FBF5DB00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22F0497E-3FCF-44CE-8EEF-2FF0FBF5DB00}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{22F0497E-3FCF-44CE-8EEF-2FF0FBF5DB00}.Debug|x64.Build.0 = Debug|Any CPU
+		{22F0497E-3FCF-44CE-8EEF-2FF0FBF5DB00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22F0497E-3FCF-44CE-8EEF-2FF0FBF5DB00}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22F0497E-3FCF-44CE-8EEF-2FF0FBF5DB00}.Release|x64.ActiveCfg = Release|Any CPU
+		{22F0497E-3FCF-44CE-8EEF-2FF0FBF5DB00}.Release|x64.Build.0 = Release|Any CPU
+		{BB46173C-8489-4925-B533-1CC4F591A01B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB46173C-8489-4925-B533-1CC4F591A01B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB46173C-8489-4925-B533-1CC4F591A01B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BB46173C-8489-4925-B533-1CC4F591A01B}.Debug|x64.Build.0 = Debug|Any CPU
+		{BB46173C-8489-4925-B533-1CC4F591A01B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB46173C-8489-4925-B533-1CC4F591A01B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB46173C-8489-4925-B533-1CC4F591A01B}.Release|x64.ActiveCfg = Release|Any CPU
+		{BB46173C-8489-4925-B533-1CC4F591A01B}.Release|x64.Build.0 = Release|Any CPU
+		{85020AAE-A4E5-0463-4084-127BE1AE81B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85020AAE-A4E5-0463-4084-127BE1AE81B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85020AAE-A4E5-0463-4084-127BE1AE81B9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{85020AAE-A4E5-0463-4084-127BE1AE81B9}.Debug|x64.Build.0 = Debug|Any CPU
+		{85020AAE-A4E5-0463-4084-127BE1AE81B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85020AAE-A4E5-0463-4084-127BE1AE81B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85020AAE-A4E5-0463-4084-127BE1AE81B9}.Release|x64.ActiveCfg = Release|Any CPU
+		{85020AAE-A4E5-0463-4084-127BE1AE81B9}.Release|x64.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {33D86BE8-2C8C-45EF-9E62-87E195806956}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+     <TargetFramework>net9.0</TargetFramework> 
+    <!--<TargetFrameworks>net45;net9.0</TargetFrameworks>-->
+    <LangVersion>latest</LangVersion>  <!--或 latest-->   <!--或 8.0--> 
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <RootNamespace>$(MSBuildProjectName.Replace(" ", "_").Replace("AnyCpuNet9_0", ""))</RootNamespace>
+    <!--<AssemblyName>$(MSBuildProjectName.Replace(" ", "_").Replace("AnyCpuNet9_0", ""))$(TargetFramework.Replace("net45", "").Replace("net9.0", ".Core"))</AssemblyName>-->
+    <AssemblyName>$(MSBuildProjectName.Replace(" ", "_").Replace("Net9_0", ".Core"))</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="bin\Debug\net45\**" />
+    <EmbeddedResource Remove="bin\Debug\net45\**" />
+    <None Remove="bin\Debug\net45\**" />
+  </ItemGroup>
+	
+	<!--设置不同框架的语言版本-->
+	<!--<PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
+		<LangVersion>7.3</LangVersion>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0'">
+		<LangVersion>latest</LangVersion>
+	</PropertyGroup>-->
+
+  <ItemGroup>
+    <Folder Include="bin\Debug\net9.0\x64\" />
+    <Folder Include="bin\Debug\net9.0\x86\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="x64\livox_lidar_sdk_shared.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="x86\livox_lidar_sdk_shared.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+	
+	<!--NuGet包依赖根据框架区分-->
+	<!--<ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+		<PackageReference Include="LegacyPackage" Version="1.0.0" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+		<PackageReference Include="ModernPackage" Version="2.0.0" />
+	</ItemGroup>-->
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /e /r /y /exclude:D:\DLL\_uncopy.txt $(ProjectDir)bin\Debug\net9.0 D:\DLL\AnyCpu\&#xD;&#xA;xcopy /e /r /y /exclude:D:\DLL\_uncopy.txt $(ProjectDir)bin\Debug\net9.0 $(SolutionDir)ScanUtilityExample_CommandLineNet9_0\bin\Debug\net9.0\" />
+  </Target>
+
+</Project>

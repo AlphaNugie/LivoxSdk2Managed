@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="bin\Debug\net9.0\x64\" />
+    <Folder Include="bin\Debug\net9.0\x86\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="bin\Debug\net9.0\hap_config.json" />
+  </ItemGroup>
+
+</Project>
