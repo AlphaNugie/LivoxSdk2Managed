@@ -18,23 +18,37 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Core
     /// </summary>
     public class DataBufferService<T>
     {
-        //// 常量
-        //private const int PointsPerMillisecond = 384; // 每毫秒固定更新点数
-
-        // 同步锁对象
+        /// <summary>
+        /// 同步锁对象
+        /// </summary>
+#if NET9_0_OR_GREATER
         private readonly Lock _bufferLock = new();
+#elif NET45
+        private readonly object _bufferLock = new object();
+#endif
 
-        // 双缓冲队列（存储数据块）
+        /// <summary>
+        /// 双缓冲队列（存储数据块）
+        /// </summary>
+#if NET9_0_OR_GREATER
         private readonly Queue<DataChunk<T>> _activeQueue = new();
-        //private Queue<DataChunk<T>> _backQueue = new();
+#elif NET45
+        private readonly Queue<DataChunk<T>> _activeQueue = new Queue<DataChunk<T>>();
+#endif
 
         //// 内存池（优化频繁分配）
         //private readonly ObjectPool<DataChunk> _chunkPool =
         //    new DefaultObjectPool<DataChunk>(new DataChunkPoolPolicy(PointsPerMillisecond));
-        // 内存池（优化频繁分配）（按每次回调返回的包为单位分配）
+        /// <summary>
+        /// 内存池（优化频繁分配）（按每次回调返回的包为单位分配）
+        /// </summary>
         private readonly ObjectPool<DataChunk<T>> _chunkPool =
             //new(() => new DataChunk<T>(LivoxLidarQuickStart.POINTS_PER_PKG));
+#if NET9_0_OR_GREATER
             new(() => new DataChunk<T>());
+#elif NET45
+            new ObjectPool<DataChunk<T>>(() => new DataChunk<T>());
+#endif
 
         //// 创建对象池策略
         //var poolPolicy = new DefaultPooledObjectPolicy<DataChunk>(() =>
@@ -43,8 +57,14 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Core
         //// 初始化对象池
         //_chunkPool = new DefaultObjectPool<DataChunk>(poolPolicy);
 
-        // 动态容量字段（volatile保证多线程可见性）
+        /// <summary>
+        /// 动态容量字段（volatile保证多线程可见性）
+        /// </summary>
+#if NET9_0_OR_GREATER
         private volatile int _windowCapacity = LivoxLidarQuickStart.POINTS_PER_PKG * LivoxLidarQuickStart.PKGS_PER_MILLISEC * 100; // 默认100ms窗口
+#elif NET45
+        private volatile int _windowCapacity = LivoxLidarQuickStart.POINTS_PER_PKG * LivoxLidarQuickStart.PKGS_PER_MILLISEC * 100; // 默认100ms窗口
+#endif
 
         /// <summary>
         /// 当前窗口容量（可动态设置）
@@ -70,7 +90,11 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Core
         //public void AddDataChunk(List<LivoxLidarCartesianHighRawPoint> newPoints)
         public void AddDataChunk(IEnumerable<T> newPoints)
         {
+#if NET9_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(newPoints);
+#elif NET45
+            if (newPoints == null) throw new ArgumentNullException(nameof(newPoints));
+#endif
 
             //if (newPoints.Count() != PointsPerMillisecond)
             //    throw new ArgumentException($"必须提供{PointsPerMillisecond}个点");
@@ -118,7 +142,11 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Core
                 //return _backQueue.SelectMany(chunk => chunk.Points);
 
                 // 返回扁平化数据
+#if NET9_0_OR_GREATER
                 return [.. _activeQueue.SelectMany(chunk => chunk.Points)];
+#elif NET45
+                return _activeQueue.SelectMany(chunk => chunk.Points).ToArray();
+#endif
             }
         }
 
@@ -140,12 +168,35 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Core
         }
     }
 
+#if NET9_0_OR_GREATER
     /// <summary>
-    /// 内部数据块定义
+    /// 内部数据块定义，用于存储单次回调返回的点云数据
     /// </summary>
+    /// <typeparam name="T">点云数据类型</typeparam>
+    /// <param name="capacity">数据块的容量</param>
     internal class DataChunk<T>(int capacity = 0)
+#elif NET45
+    /// <summary>
+    /// 内部数据块定义，用于存储单次回调返回的点云数据
+    /// </summary>
+    /// <typeparam name="T">点云数据类型</typeparam>
+    internal class DataChunk<T>
+#endif
     {
+#if NET9_0_OR_GREATER
         public List<T> Points { get; } = new List<T>(capacity); // capacity为0时，等效于new Lit<T>()
+#elif NET45
+        public List<T> Points { get; } // capacity为0时，等效于new Lit<T>()
+
+        /// <summary>
+        /// 使用给定的容量初始化数据块
+        /// </summary>
+        /// <param name="capacity">数据块的容量</param>
+        public DataChunk(int capacity = 0)
+        {
+            Points = new List<T>(capacity);
+        }
+#endif
     }
 
     ///// <summary>

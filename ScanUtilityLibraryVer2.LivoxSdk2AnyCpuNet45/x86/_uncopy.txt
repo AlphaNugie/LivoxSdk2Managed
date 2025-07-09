@@ -1,6 +1,0 @@
-.pdb
-.exp
-.lib
-.tmp
-.zip
-.json

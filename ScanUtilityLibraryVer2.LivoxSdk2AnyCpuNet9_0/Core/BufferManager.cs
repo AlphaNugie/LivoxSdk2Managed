@@ -7,12 +7,15 @@ using System.Threading.Tasks;
 
 namespace ScanUtilityLibraryVer2.LivoxSdk2.Core
 {
+    //**************
+    // 设计目标：在雷达数据采集(400K+/秒)和渲染处理之间建立安全缓冲区
+    // 高频数据吞吐：处理每秒超 384,000 点（192,000点/500ms）的实时流
+    // 跨线程安全：协调雷达数据采集线程、数据处理线程、渲染线程之间的数据传递
+    // 内存效率优化：避免因频繁内存分配导致的 GC 压力
+    //**************
+#if NET9_0_OR_GREATER
     /// <summary>
     /// 高并发双缓冲数据管道（支持无锁读/写）
-    /// 设计目标：在雷达数据采集(400K+/秒)和渲染处理之间建立安全缓冲区
-    /// <para/>高频数据吞吐：处理每秒超 384,000 点（192,000点/500ms）的实时流
-    /// <para/>跨线程安全：协调雷达数据采集线程、数据处理线程、渲染线程之间的数据传递
-    /// <para/>内存效率优化：避免因频繁内存分配导致的 GC 压力
     /// </summary>
     /// <typeparam name="T">点云数据类型（需为结构体以优化内存）</typeparam>
     /// <remarks>
@@ -20,18 +23,33 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Core
     /// </remarks>
     /// <param name="capacity">单个缓冲区容量（建议为最大单帧点数的2倍）</param>
     public sealed class BufferManager<T>(int capacity = 384000) where T : struct
+#elif NET45
+    /// <summary>
+    /// 高并发双缓冲数据管道（支持无锁读/写）
+    /// </summary>
+    /// <typeparam name="T">点云数据类型（需为结构体以优化内存）</typeparam>
+    public sealed class BufferManager<T> where T : struct
+#endif
     {
         #region 嵌套类型
         /// <summary>
         /// 单个缓冲区的状态跟踪
         /// </summary>
+#if NET9_0_OR_GREATER
         private sealed class BufferState(int capacity)
+#elif NET45
+        private sealed class BufferState
+#endif
         {
             /// <summary>
             /// 实际存储数据的数组
             /// 预分配内存以避免GC开销
             /// </summary>
+#if NET9_0_OR_GREATER
             public T[] DataArray { get; } = new T[capacity];
+#elif NET45
+            public T[] DataArray { get; }
+#endif
 
             /// <summary>
             /// 当前写入位置（下一个可写入的索引）
@@ -54,6 +72,17 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Core
             /// 缓冲区是否有待读取数据
             /// </summary>
             public bool HasData => ReadPosition < WritePosition;
+
+#if NET45
+            /// <summary>
+            /// 用指定容量初始化缓冲区状态
+            /// </summary>
+            /// <param name="capacity"></param>
+            public BufferState(int capacity)
+            {
+                DataArray = new T[capacity];
+            }
+#endif
         }
         #endregion
 
@@ -62,7 +91,11 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Core
         /// 容量调整操作锁（防止并发修改）
         /// 使用独立锁对象以避免与常规操作的锁竞争
         /// </summary>
+#if NET9_0_OR_GREATER
         private readonly Lock _resizeLock = new();
+#elif NET45
+        private readonly object _resizeLock = new object();
+#endif
 
         /// <summary>
         /// 容量调整标记（当值为true时禁止写入）
@@ -73,18 +106,26 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Core
         /// <summary>
         /// 同步锁对象（确保跨线程操作原子性）
         /// </summary>
+#if NET9_0_OR_GREATER
         private readonly Lock _syncRoot = new();
+#elif NET45
+        private readonly object _syncRoot = new object();
+#endif
 
         /// <summary>
         /// 双缓冲状态集合（环形缓冲区）
         /// 索引0: 当前写入缓冲区
         /// 索引1: 预备写入缓冲区
         /// </summary>
+#if NET9_0_OR_GREATER
         private readonly BufferState[] _buffers =
             [
                 new BufferState(capacity),
                 new BufferState(capacity)
             ];
+#elif NET45
+        private readonly BufferState[] _buffers;
+#endif
 
         //通过 _activeWriteIndex 和 _activeReadIndex 控制缓冲区角色，确保生产者和消费者永远不会同时操作同一缓冲区。
 
@@ -104,7 +145,11 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Core
         /// 单个缓冲区的容量（元素数量）
         /// 根据雷达最大帧率×2设计，例如：192,000点/帧 × 2 = 384,000
         /// </summary>
+#if NET9_0_OR_GREATER
         private int _bufferCapacity = capacity;
+#elif NET45
+        private int _bufferCapacity;
+#endif
         #endregion
 
         #region 属性
@@ -121,7 +166,21 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Core
         #endregion
 
         #region 构造方法
-
+#if NET45
+        /// <summary>
+        /// 初始化双缓冲管理器
+        /// </summary>
+        /// <param name="capacity">单个缓冲区容量（建议为最大单帧点数的2倍）</param>
+        public BufferManager(int capacity = 384000)
+        {
+            _bufferCapacity = capacity;
+            _buffers = new[]
+            {
+                new BufferState(capacity),
+                new BufferState(capacity)
+            };
+        }
+#endif
         #endregion
 
         #region 公共方法
@@ -136,7 +195,11 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Core
         /// <exception cref="ArgumentNullException">输入数据为空</exception>
         public bool TryWrite(IEnumerable<T> data)
         {
+#if NET9_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(data, nameof(data));
+#elif NET45
+            if (data == null) throw new ArgumentNullException(nameof(data));
+#endif
             if (_isResizing) // ▶ 新增调整状态检查
                 //throw new InvalidOperationException("缓冲区正在调整容量，禁止写入");
                 return false;
@@ -183,7 +246,11 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Core
                 if (!readBuffer.HasData)
                 {
                     //data = null;
+#if NET9_0_OR_GREATER
                     data = [];
+#elif NET45
+                    data = new T[0];
+#endif
                     count = 0;
                     return false;
                 }

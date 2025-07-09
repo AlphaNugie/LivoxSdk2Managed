@@ -1,3 +1,52 @@
+# 使用说明
+
+## 所需配置
+
+- 将调用此库的进程都添加到防火墙的例外里
+
+- 将生成的 livox lidar sdk 2复制到对应目录下，64位放到 `ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\x64\` 目录下，32位放到 `ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\x86\` 目录下
+
+- 示例配置文件存放在 `ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\ConfigFiles\` 目录下，日后在调用此库时，拷贝到调用进程所在的目录下
+
+## 异常处理 | .net framework 4.5
+
+### `STATUS_WX86_BREAKPOINT (0x4000001F)` 异常
+
+
+```txt
+[program].exe (进程 35212)已退出，代码为 1073741855 (0x4000001f)
+```
+
+此异常通常与 **32位/64位混合模式调用非托管代码** 相关
+
+#### 直接原因
+当您选择 `Any CPU` 配置时，在 64 位系统上程序默认以 **64 位模式运行**，但如果勾选了 `Prefer 32-bit`（默认勾选），程序会强制以 **32 位模式运行**。此时如果调用的 **非托管 DLL 是 64 位版本**，就会触发以下问题：
+
+1. **进程位数与 DLL 位数不匹配**：32 位进程无法加载 64 位 DLL。
+2. **系统断点陷阱**：Windows 检测到非法操作时，会抛出 `STATUS_WX86_BREAKPOINT` 异常强制终止进程。
+
+#### 为什么 x64 模式正常？
+
+- 在显式选择 `x64` 平台时，程序以 64 位模式运行，与 64 位 DLL 完全兼容。
+- 在 `Any CPU` + 未勾选 `Prefer 32-bit` 时，程序在 64 位系统上也会以 64 位运行（此时也正常）。
+
+#### 解决方案
+
+1. **统一进程与 DLL 的位数**
+
+- **方案一**：强制程序以 64 位运行
+
+取消勾选项目属性中的 `Prefer 32-bit`（路径：项目属性 → Build → 取消勾选 “Prefer 32-bit”）
+
+```xml
+<!-- .csproj 文件中的配置示例 -->
+<PropertyGroup>
+  <PlatformTarget>AnyCPU</PlatformTarget>
+  <Prefer32Bit>false</Prefer32Bit>
+</PropertyGroup>
+```
+---
+
 ## BufferManager双缓冲区
 
 ### 关键设计解析

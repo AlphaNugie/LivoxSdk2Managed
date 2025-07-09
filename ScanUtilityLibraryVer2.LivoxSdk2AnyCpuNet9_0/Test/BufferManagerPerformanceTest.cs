@@ -13,11 +13,19 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Test
     /// </summary>
     public class BufferManagerPerformanceTest
     {
-        // 测试持续时间（秒）
+        /// <summary>
+        /// 测试持续时间（秒）
+        /// </summary>
         private const int TestDurationSeconds = 60;
 
-        // 线程安全的随机数生成器（解决多线程竞争问题）
+        /// <summary>
+        /// 线程安全的随机数生成器（解决多线程竞争问题）
+        /// </summary>
+#if NET9_0_OR_GREATER
         private static readonly Random _random = new();
+#elif NET45
+        private static readonly Random _random = new Random();
+#endif
 
         /// <summary>
         /// 模拟LiDAR点数据结构体

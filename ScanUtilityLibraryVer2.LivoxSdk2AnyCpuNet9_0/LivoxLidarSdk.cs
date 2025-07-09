@@ -69,9 +69,12 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2
         /// <param name="cb">回调函数</param>
         /// <param name="client_data">用户数据</param>
         [DllImport("livox_lidar_sdk_shared.dll", CallingConvention = CallingConvention.Cdecl)]
-        //public static extern void SetLivoxLidarPointCloudCallBack(LivoxLidarPointCloudCallBack cb, IntPtr client_data);
         // 需要非托管代码能够处理 null 回调。如果非托管代码无法处理 null，则会遇到运行时错误
+#if NET9_0_OR_GREATER
         public static extern void SetLivoxLidarPointCloudCallBack(LivoxLidarPointCloudCallBack? cb, IntPtr client_data);
+#elif NET45
+        public static extern void SetLivoxLidarPointCloudCallBack(LivoxLidarPointCloudCallBack cb, IntPtr client_data);
+#endif
 
         /// <summary>
         /// 添加LiDAR命令数据观察者
@@ -79,7 +82,6 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2
         /// <param name="cb">回调函数</param>
         /// <param name="client_data">用户数据</param>
         [DllImport("livox_lidar_sdk_shared.dll", CallingConvention = CallingConvention.Cdecl)]
-        //public static extern void LivoxLidarAddCmdObserver(LivoxLidarCmdObserverCallBack cb, IntPtr client_data);
         public static extern void LivoxLidarAddCmdObserver(LivoxLidarCmdObserverCallBack cb, IntPtr client_data);
 
         /// <summary>
@@ -112,7 +114,11 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2
         [DllImport("livox_lidar_sdk_shared.dll", CallingConvention = CallingConvention.Cdecl)]
         //public static extern void SetLivoxLidarImuDataCallback(LivoxLidarImuDataCallback cb, IntPtr client_data);
         // 需要非托管代码能够处理 null 回调。如果非托管代码无法处理 null，则会遇到运行时错误
+#if NET9_0_OR_GREATER
         public static extern void SetLivoxLidarImuDataCallback(LivoxLidarImuDataCallback? cb, IntPtr client_data);
+#elif NET45
+        public static extern void SetLivoxLidarImuDataCallback(LivoxLidarImuDataCallback cb, IntPtr client_data);
+#endif
 
         /// <summary>
         /// 设置接收状态信息的回调函数
@@ -122,7 +128,11 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2
         [DllImport("livox_lidar_sdk_shared.dll", CallingConvention = CallingConvention.Cdecl)]
         //public static extern void SetLivoxLidarInfoCallback(LivoxLidarInfoCallback cb, IntPtr client_data);
         // 需要非托管代码能够处理 null 回调。如果非托管代码无法处理 null，则会遇到运行时错误
+#if NET9_0_OR_GREATER
         public static extern void SetLivoxLidarInfoCallback(LivoxLidarInfoCallback? cb, IntPtr client_data);
+#elif NET45
+        public static extern void SetLivoxLidarInfoCallback(LivoxLidarInfoCallback cb, IntPtr client_data);
+#endif
 
         /// <summary>
         /// 禁用SDK控制台日志输出
@@ -144,7 +154,11 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2
         [DllImport("livox_lidar_sdk_shared.dll", CallingConvention = CallingConvention.Cdecl)]
         //public static extern void SetLivoxLidarInfoChangeCallback(LivoxLidarInfoChangeCallback cb, IntPtr client_data);
         // 需要非托管代码能够处理 null 回调。如果非托管代码无法处理 null，则会遇到运行时错误
+#if NET9_0_OR_GREATER
         public static extern void SetLivoxLidarInfoChangeCallback(LivoxLidarInfoChangeCallback? cb, IntPtr client_data);
+#elif NET45
+        public static extern void SetLivoxLidarInfoChangeCallback(LivoxLidarInfoChangeCallback cb, IntPtr client_data);
+#endif
 
         /// <summary>
         /// 查询LiDAR内部信息

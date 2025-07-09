@@ -19,7 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NET45</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Debug\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet45.xml</DocumentationFile>
@@ -43,34 +43,57 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\BufferManager.cs" />
-    <Compile Include="Core\CoordinateTransformer.cs" />
-    <Compile Include="Core\MathUtils.cs" />
-    <Compile Include="DllLoader.cs" />
-    <Compile Include="Include\LivoxLidarCallbacks.cs" />
-    <Compile Include="Include\LivoxLidarDef.cs" />
-    <Compile Include="Include\LivoxLidarEnums.cs" />
-    <Compile Include="Include\LivoxLidarStructs.cs" />
-    <Compile Include="LivoxLidarSdk.cs" />
-    <Compile Include="Model\CoordTransParamSet.cs" />
+    <Compile Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\Core\BufferManager.cs" Link="Core\BufferManager.cs" />
+    <Compile Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\Core\CoordinateTransformer.cs" Link="Core\CoordinateTransformer.cs" />
+    <!-- <Compile Include="Core\CoordinateTransformer.cs" /> -->
+    <Compile Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\Core\DataBufferService.cs" Link="Core\DataBufferService.cs" />
+    <Compile Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\Core\MathUtils.cs" Link="Core\MathUtils.cs" />
+    <!-- <Compile Include="Core\MathUtils.cs" /> -->
+    <Compile Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\DllLoader.cs" Link="DllLoader.cs" />
+    <!-- <Compile Include="DllLoader.cs" /> -->
+    <Compile Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\Include\LivoxLidarCallbacks.cs" Link="Include\LivoxLidarCallbacks.cs" />
+    <!-- <Compile Include="Include\LivoxLidarCallbacks.cs" /> -->
+    <Compile Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\Include\LivoxLidarDef.cs" Link="Include\LivoxLidarDef.cs" />
+    <!-- <Compile Include="Include\LivoxLidarDef.cs" /> -->
+    <Compile Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\Include\LivoxLidarEnums.cs" Link="Include\LivoxLidarEnums.cs" />
+    <!-- <Compile Include="Include\LivoxLidarEnums.cs" /> -->
+    <Compile Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\Include\LivoxLidarStructs.cs" Link="Include\LivoxLidarStructs.cs" />
+    <!-- <Compile Include="Include\LivoxLidarStructs.cs" /> -->
+    <Compile Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\LivoxLidarSdk.cs" Link="LivoxLidarSdk.cs" />
+    <!-- <Compile Include="LivoxLidarSdk.cs" /> -->
+    <Compile Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\Model\CoordTransParamSet.cs" Link="Model\CoordTransParamSet.cs" />
+    <!-- <Compile Include="Model\CoordTransParamSet.cs" /> -->
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Samples\LivoxLidarQuickStart.cs" />
+    <Compile Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\Samples\LivoxLidarQuickStart.cs" Link="Samples\LivoxLidarQuickStart.cs" />
+    <!-- <Compile Include="Samples\LivoxLidarQuickStart.cs" /> -->
+    <Compile Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\Test\BufferManagerPerformanceTest.cs" Link="Test\BufferManagerPerformanceTest.cs" />
+    <Compile Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\Utilities\ObjectPool.cs" Link="Utilities\ObjectPool.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ConfigFiles\hap_config.json" />
-    <None Include="ConfigFiles\mid360_config.json" />
-    <None Include="Readme.md" />
+    <None Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\ConfigFiles\full_config.json" Link="ConfigFiles\full_config.json" />
+    <None Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\ConfigFiles\hap_config.json" Link="ConfigFiles\hap_config.json" />
+    <None Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\ConfigFiles\mid360_config.json" Link="ConfigFiles\mid360_config.json" />
+    <None Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\Readme.md" Link="Readme.md" />
+    <!-- <None Include="Readme.md" /> -->
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ConfigFiles\readme.txt" />
-    <Content Include="x64\livox_lidar_sdk_shared.dll">
+    <Content Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\ConfigFiles\readme.txt" Link="ConfigFiles\readme.txt" />
+    <Content Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\x64\livox_lidar_sdk_shared.dll" Link="x64\livox_lidar_sdk_shared.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\x64\_uncopy.txt" Link="x64\_uncopy.txt" />
+    <Content Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\x86\livox_lidar_sdk_shared.dll" Link="x86\livox_lidar_sdk_shared.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\ScanUtilityLibraryVer2.LivoxSdk2AnyCpuNet9_0\x86\_uncopy.txt" Link="x86\_uncopy.txt" />
+    <!-- <Content Include="x64\livox_lidar_sdk_shared.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="x64\_uncopy.txt" />
     <Content Include="x86\livox_lidar_sdk_shared.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="x86\_uncopy.txt" />
+    <Content Include="x86\_uncopy.txt" /> -->
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\Debug\x64\" />

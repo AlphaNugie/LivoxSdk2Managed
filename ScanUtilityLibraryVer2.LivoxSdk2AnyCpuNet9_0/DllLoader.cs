@@ -15,7 +15,11 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2
     /// </summary>
     public class DllLoader
     {
-        //[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+//#if NET9_0_OR_GREATER
+//        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+//#elif NET45
+//        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+//#endif
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern bool SetDllDirectory(string lpPathName);
 
@@ -30,8 +34,9 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2
         /// </summary>
         public static void ConfigureDllPath()
         {
-            //TODO 跨平台框架下（.NET Core 3.0 或 .NET 5+ 环境）需使用NativeLibrary.SetDllImportResolver方法
+            //跨平台框架下（.NET Core 3.0 或 .NET 5+ 环境）使用NativeLibrary.SetDllImportResolver方法
             //参见 https://www.yuque.com/yuyuyu-lbiwy/dgpcg0/kvv385nzws7ynfcf#sPoKC
+#if NET9_0_OR_GREATER
             // 注册 DLL 路径解析逻辑
             NativeLibrary.SetDllImportResolver(
                 typeof(DllLoader).Assembly,
@@ -41,10 +46,12 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2
                     string dllPath = $"{architectureFolder}/{libraryName}";
                     return NativeLibrary.Load(dllPath); // 返回 DLL 句柄
                 });
-            //string architectureFolder = Environment.Is64BitProcess ? "x64" : "x86";
-            //string dllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, architectureFolder);
-            //// 设置 DLL 搜索路径
-            //SetDllDirectory(dllPath);
+#elif NET45
+            string architectureFolder = Environment.Is64BitProcess ? "x64" : "x86";
+            string dllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, architectureFolder);
+            // 设置 DLL 搜索路径
+            SetDllDirectory(dllPath);
+#endif
             DllDirSet = true;
         }
     }

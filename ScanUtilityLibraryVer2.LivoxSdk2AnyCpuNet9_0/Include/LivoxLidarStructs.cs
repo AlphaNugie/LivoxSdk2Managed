@@ -246,7 +246,7 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Include
     }
 
     /// <summary>
-    /// LiDAR高精度笛卡尔坐标系点数据结构体
+    /// LiDAR高精度笛卡尔坐标系点数据结构体，坐标单位为毫米
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct LivoxLidarCartesianHighRawPoint
@@ -278,7 +278,7 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Include
     }
 
     /// <summary>
-    /// LiDAR低精度笛卡尔坐标系点数据结构体
+    /// LiDAR低精度笛卡尔坐标系点数据结构体，坐标单位为厘米（10毫米）
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct LivoxLidarCartesianLowRawPoint

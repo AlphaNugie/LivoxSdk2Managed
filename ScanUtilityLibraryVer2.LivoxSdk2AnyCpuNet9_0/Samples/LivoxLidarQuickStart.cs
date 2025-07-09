@@ -18,11 +18,8 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
     /// </summary>
     public class LivoxLidarQuickStart
     {
-        //// 初始化双缓冲区（容量384,000点，对应192,000点/500ms × 2的规格）
-        //private static readonly BufferManager<LivoxLidarCartesianHighRawPoint> _bufferManagerHighRawPoints = new(38400);
-        //private static readonly BufferManager<LivoxLidarCartesianLowRawPoint> _bufferManagerLowRawPoints = new(38400);
-        //private static readonly BufferManager<LivoxLidarSpherPoint> _bufferManagerSpherPoints = new(38400);
 
+        #region 常量定义
         /// <summary>
         /// 每包包含的点数为96
         /// </summary>
@@ -37,17 +34,37 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
         /// 每毫秒包含的点数
         /// </summary>
         public const int POINTS_PER_MILLISEC = POINTS_PER_PKG * PKGS_PER_MILLISEC;
+        #endregion
 
         /// <summary>
         /// 同步锁对象（确保跨线程操作原子性）
         /// </summary>
+#if NET9_0_OR_GREATER
         private static readonly Lock _syncRoot = new();
+#elif NET45
+        private static readonly object _syncRoot = new object();
+#endif
 
         #region 属性
         /// <summary>
         /// 设备的三轴角度旋转与空间位移参数集
         /// </summary>
-        public static CoordTransParamSet? CoordTransParamSet { get; private set; } = null;
+        public static CoordTransParamSet CoordTransParamSet { get; private set; } = new CoordTransParamSet();
+
+        /// <summary>
+        /// 双缓冲的基础信息
+        /// </summary>
+        public static string BufferHeader { get; private set; } = string.Empty;
+
+        /// <summary>
+        /// 以太网数据包结构体简略信息
+        /// </summary>
+        public static string PacketHeader { get; private set; } = string.Empty;
+
+        /// <summary>
+        /// 以太网数据包体结构体内的点云数据（16进制字符串）
+        /// </summary>
+        public static string PacketData { get; private set; } = string.Empty;
 
         private static int _frameTime = 100;
         /// <summary>
@@ -92,7 +109,9 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
             private set
             {
                 _ptsPerFrame = value;
+//#if NET9_0_OR_GREATER
                 BufferServiceHighRawPoints.WindowCapacity = BufferServiceLowRawPoints.WindowCapacity = BufferServiceSpherPoints.WindowCapacity = _ptsPerFrame;
+//#endif
             }
         }
 
@@ -102,6 +121,37 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
         public static LivoxLidarPointDataType DataType { get; private set; }
 
         #region 双缓冲
+//#if NET9_0_OR_GREATER
+//        /// <summary>
+//        /// 双缓冲服务对象（笛卡尔坐标系高精度坐标点）
+//        /// </summary>
+//        public static DataBufferService<LivoxLidarCartesianHighRawPoint> BufferServiceHighRawPoints { get; private set; } = new DataBufferService<LivoxLidarCartesianHighRawPoint>() { WindowCapacity = _ptsPerFrame };
+
+//        /// <summary>
+//        /// 双缓冲服务对象（笛卡尔坐标系低精度坐标点）
+//        /// </summary>
+//        public static DataBufferService<LivoxLidarCartesianLowRawPoint> BufferServiceLowRawPoints { get; private set; } = new DataBufferService<LivoxLidarCartesianLowRawPoint>() { WindowCapacity = _ptsPerFrame };
+
+//        /// <summary>
+//        /// 双缓冲服务对象（球坐标系坐标点）
+//        /// </summary>
+//        public static DataBufferService<LivoxLidarSpherPoint> BufferServiceSpherPoints { get; private set; } = new DataBufferService<LivoxLidarSpherPoint>() { WindowCapacity = _ptsPerFrame };
+//#elif NET45
+//        /// <summary>
+//        /// 笛卡尔坐标系高精度坐标点的缓存序列（1mm）
+//        /// </summary>
+//        public static List<LivoxLidarCartesianHighRawPoint> CartesianHighRawPoints { get; private set; } = new List<LivoxLidarCartesianHighRawPoint>();
+
+//        /// <summary>
+//        /// 笛卡尔坐标系低精度坐标点的序列（10mm）
+//        /// </summary>
+//        public static List<LivoxLidarCartesianLowRawPoint> CartesianLowRawPoints { get; private set; } = new List<LivoxLidarCartesianLowRawPoint>();
+
+//        /// <summary>
+//        /// 球坐标系坐标点的序列
+//        /// </summary>
+//        public static List<LivoxLidarSpherPoint> SpherPoints { get; private set; } = new List<LivoxLidarSpherPoint>();
+//#endif
         /// <summary>
         /// 双缓冲服务对象（笛卡尔坐标系高精度坐标点）
         /// </summary>
@@ -116,29 +166,38 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
         /// 双缓冲服务对象（球坐标系坐标点）
         /// </summary>
         public static DataBufferService<LivoxLidarSpherPoint> BufferServiceSpherPoints { get; private set; } = new DataBufferService<LivoxLidarSpherPoint>() { WindowCapacity = _ptsPerFrame };
-        #endregion
-
+#if NET45
         ///// <summary>
         ///// 笛卡尔坐标系高精度坐标点的缓存序列（1mm）
         ///// </summary>
-        //public static List<LivoxLidarCartesianHighRawPoint> CartesianHighRawPoints { get; /*private */set; } = [];
+        //public static List<LivoxLidarCartesianHighRawPoint> CartesianHighRawPoints { get; private set; } = new List<LivoxLidarCartesianHighRawPoint>();
 
         ///// <summary>
         ///// 笛卡尔坐标系低精度坐标点的序列（10mm）
         ///// </summary>
-        //public static List<LivoxLidarCartesianLowRawPoint> CartesianLowRawPoints { get; /*private */set; } = [];
+        //public static List<LivoxLidarCartesianLowRawPoint> CartesianLowRawPoints { get; private set; } = new List<LivoxLidarCartesianLowRawPoint>();
 
         ///// <summary>
         ///// 球坐标系坐标点的序列
         ///// </summary>
-        //public static List<LivoxLidarSpherPoint> SpherPoints { get; /*private */set; } = [];
+        //public static List<LivoxLidarSpherPoint> SpherPoints { get; private set; } = new List<LivoxLidarSpherPoint>();
+#endif
+        #endregion
+
         #endregion
 
         // 添加这些静态变量来保持委托引用
+#if NET9_0_OR_GREATER
         private static LivoxLidarPointCloudCallBack? _pointCloudCallback;
         private static LivoxLidarImuDataCallback? _imuDataCallback;
         private static LivoxLidarInfoCallback? _pushMsgCallback;
         private static LivoxLidarInfoChangeCallback? _infoChangeCallback;
+#elif NET45
+        private static LivoxLidarPointCloudCallBack _pointCloudCallback;
+        private static LivoxLidarImuDataCallback _imuDataCallback;
+        private static LivoxLidarInfoCallback _pushMsgCallback;
+        private static LivoxLidarInfoChangeCallback _infoChangeCallback;
+#endif
 
         #region 回调函数
         /// <summary>
@@ -153,14 +212,20 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
             if (data == IntPtr.Zero) return;
 
             // 使用非泛型版本的 Marshal.PtrToStructure，并显式地传递类型参数 typeof(T)
-            //var packet = (LivoxLidarEthernetPacket)Marshal.PtrToStructure(data, typeof(LivoxLidarEthernetPacket));
+#if NET9_0_OR_GREATER
             var packet = Marshal.PtrToStructure<LivoxLidarEthernetPacket>(data);
+#elif NET45
+            var packet = (LivoxLidarEthernetPacket)Marshal.PtrToStructure(data, typeof(LivoxLidarEthernetPacket));
+#endif
+            PacketHeader = $"Point cloud handle: {handle}, udp_counter: {packet.udp_cnt}, data_num: {packet.dot_num}, data_type: {packet.data_type}, length: {packet.length}, frame_counter: {packet.frame_cnt}";
+            //取280个字节的数据并转换为16进制字符串
+            int datalen = 280;
+            PacketData = packet.data.Take(datalen).Aggregate("", (current, b) => current + b.ToString("X2") + " ").Trim();
 
-            Console.WriteLine($"Point cloud handle: {handle}, udp_counter: {packet.udp_cnt}, data_num: {packet.dot_num}, data_type: {packet.data_type}, length: {packet.length}, frame_counter: {packet.frame_cnt}");
-            if (packet.data.Sum(b => b) > 0)
-#pragma warning disable CS0642 // 空语句可能有错误
-                ;
-#pragma warning restore CS0642 // 空语句可能有错误
+            //Console.WriteLine($"Point cloud handle: {handle}, udp_counter: {packet.udp_cnt}, data_num: {packet.dot_num}, data_type: {packet.data_type}, length: {packet.length}, frame_counter: {packet.frame_cnt}");
+            Console.WriteLine(PacketHeader);
+            //if (packet.data.Sum(b => b) > 0)
+            //    ;
 
             #region backup
             //if (packet.data_type == (byte)LivoxLidarPointDataType.kLivoxLidarCartesianCoordinateHighData)
@@ -208,40 +273,31 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
                     //创建一个与点云数据数量具有相应长度的数组来存储点云数据
                     points = new LivoxLidarCartesianHighRawPoint[packet.dot_num];
                     //计算整个点云数据的字节大小（先获取单个 LivoxLidarCartesianHighRawPoint 结构体的字节大小）
-                    //size = Marshal.SizeOf(typeof(LivoxLidarCartesianHighRawPoint)) * packet.dot_num;
+#if NET9_0_OR_GREATER
                     size = Marshal.SizeOf<LivoxLidarCartesianHighRawPoint>() * packet.dot_num;
+#elif NET45
+                    size = Marshal.SizeOf(typeof(LivoxLidarCartesianHighRawPoint)) * packet.dot_num;
+#endif
                     break;
                 case LivoxLidarPointDataType.kLivoxLidarCartesianCoordinateLowData:
                     points = new LivoxLidarCartesianLowRawPoint[packet.dot_num];
-                    //size = Marshal.SizeOf(typeof(LivoxLidarCartesianLowRawPoint)) * packet.dot_num;
+#if NET9_0_OR_GREATER
                     size = Marshal.SizeOf<LivoxLidarCartesianLowRawPoint>() * packet.dot_num;
+#elif NET45
+                    size = Marshal.SizeOf(typeof(LivoxLidarCartesianLowRawPoint)) * packet.dot_num;
+#endif
                     break;
                 case LivoxLidarPointDataType.kLivoxLidarSphericalCoordinateData:
                     points = new LivoxLidarSpherPoint[packet.dot_num];
-                    //size = Marshal.SizeOf(typeof(LivoxLidarSpherPoint)) * packet.dot_num;
+#if NET9_0_OR_GREATER
                     size = Marshal.SizeOf<LivoxLidarSpherPoint>() * packet.dot_num;
+#elif NET45
+                    size = Marshal.SizeOf(typeof(LivoxLidarSpherPoint)) * packet.dot_num;
+#endif
                     break;
                 default:
                     return;
             }
-            //if (packet.data_type == LivoxLidarPointDataType.kLivoxLidarCartesianCoordinateHighData)
-            //{
-            //    //创建一个与点云数据数量具有相应长度的数组来存储点云数据
-            //    points = new LivoxLidarCartesianHighRawPoint[packet.dot_num];
-            //    //计算整个点云数据的字节大小（先获取单个 LivoxLidarCartesianHighRawPoint 结构体的字节大小）
-            //    size = Marshal.SizeOf(typeof(LivoxLidarCartesianHighRawPoint)) * packet.dot_num;
-            //}
-            //else if (packet.data_type == LivoxLidarPointDataType.kLivoxLidarCartesianCoordinateLowData)
-            //{
-            //    points = new LivoxLidarCartesianLowRawPoint[packet.dot_num];
-            //    size = Marshal.SizeOf(typeof(LivoxLidarCartesianLowRawPoint)) * packet.dot_num;
-            //}
-            //else if (packet.data_type == LivoxLidarPointDataType.kLivoxLidarSphericalCoordinateData)
-            //{
-            //    points = new LivoxLidarSpherPoint[packet.dot_num];
-            //    size = Marshal.SizeOf(typeof(LivoxLidarSpherPoint)) * packet.dot_num;
-            //}
-            //else return;
 
             //将 points 数组固定在内存中，以防止垃圾回收器移动它。
             //GCHandle.Alloc 方法分配一个句柄，使得垃圾回收器不会移动 points 数组。GCHandleType.Pinned 表示该句柄为固定句柄
@@ -261,12 +317,16 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
                     //为增加性能，在将点云数据插入缓存前，先进行坐标转换
                     if (CoordTransParamSet != null)
                         newHighPoints = newHighPoints.TransformPoints(CoordTransParamSet);
+//#if NET9_0_OR_GREATER
+//                    BufferServiceHighRawPoints.AddDataChunk(newHighPoints);
+//#elif NET45
+//                    CartesianHighRawPoints.InsertRange(0, newHighPoints);
+//#endif
+
                     BufferServiceHighRawPoints.AddDataChunk(newHighPoints);
-                    //lock (_syncRoot)
-                    //{
-                    //    CartesianHighRawPoints.InsertRange(0, newHighPoints);
-                    //}
-                    ////_bufferManagerHighRawPoints.TryWrite(newHighPoints);
+#if NET45
+                    //CartesianHighRawPoints.InsertRange(0, newHighPoints);
+#endif
                     break;
                 case LivoxLidarPointDataType.kLivoxLidarCartesianCoordinateLowData:
                     var newLowPoints = (LivoxLidarCartesianLowRawPoint[])points;
@@ -274,24 +334,23 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
                     //为增加性能，在将点云数据插入缓存前，先进行坐标转换
                     if (CoordTransParamSet != null)
                         newLowPoints = newLowPoints.TransformPoints(CoordTransParamSet);
+//#if NET9_0_OR_GREATER
+//                    BufferServiceLowRawPoints.AddDataChunk(newLowPoints);
+//#elif NET45
+//                    CartesianLowRawPoints.InsertRange(0, newLowPoints);
+//#endif
+
                     BufferServiceLowRawPoints.AddDataChunk(newLowPoints);
-                    //lock (_syncRoot)
-                    //{
-                    //    CartesianLowRawPoints.InsertRange(0, newLowPoints);
-                    //}
-                    ////_bufferManagerLowRawPoints.TryWrite(newLowPoints);
+#if NET45
+                    //CartesianLowRawPoints.InsertRange(0, newLowPoints);
+#endif
                     break;
                 case LivoxLidarPointDataType.kLivoxLidarSphericalCoordinateData:
+//#if NET9_0_OR_GREATER
                     var newSpherPoints = (LivoxLidarSpherPoint[])points;
                     //球坐标系不能进行坐标转换，因此直接插入缓存
-                    //if (CoordTransParamSet != null)
-                    //    newSpherPoints = newSpherPoints.TransformPoints(CoordTransParamSet);
                     BufferServiceSpherPoints.AddDataChunk(newSpherPoints);
-                    //lock (_syncRoot)
-                    //{
-                    //    SpherPoints.InsertRange(0, newSpherPoints);
-                    //}
-                    ////_bufferManagerSpherPoints.TryWrite(newSpherPoints);
+//#endif
                     break;
             }
         }
@@ -308,8 +367,11 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
             if (data == IntPtr.Zero) return;
 
             // 使用非泛型版本的 Marshal.PtrToStructure
-            //var packet = (LivoxLidarEthernetPacket)Marshal.PtrToStructure(data, typeof(LivoxLidarEthernetPacket));
+#if NET9_0_OR_GREATER
             var packet = Marshal.PtrToStructure<LivoxLidarEthernetPacket>(data);
+#elif NET45
+            var packet = (LivoxLidarEthernetPacket)Marshal.PtrToStructure(data, typeof(LivoxLidarEthernetPacket));
+#endif
             Console.WriteLine($"IMU data callback handle: {handle}, data_num: {packet.dot_num}, data_type: {packet.data_type}, length: {packet.length}, frame_counter: {packet.frame_cnt}");
         }
 
@@ -325,8 +387,11 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
             if (response == IntPtr.Zero) return;
 
             // 使用非泛型版本的 Marshal.PtrToStructure
-            // var result = (LivoxLidarAsyncControlResponse)Marshal.PtrToStructure(response, typeof(LivoxLidarAsyncControlResponse));
+#if NET9_0_OR_GREATER
             var result = Marshal.PtrToStructure<LivoxLidarAsyncControlResponse>(response);
+#elif NET45
+            var result = (LivoxLidarAsyncControlResponse)Marshal.PtrToStructure(response, typeof(LivoxLidarAsyncControlResponse));
+#endif
             Console.WriteLine($"WorkModeCallback, status: {status}, handle: {handle}, ret_code: {result.ret_code}, error_key: {result.error_key}");
         }
 
@@ -343,7 +408,11 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
 
             // 使用非泛型版本的 Marshal.PtrToStructure
             // var result = (LivoxLidarRebootResponse)Marshal.PtrToStructure(response, typeof(LivoxLidarRebootResponse));
+#if NET9_0_OR_GREATER
             var result = Marshal.PtrToStructure<LivoxLidarRebootResponse>(response);
+#elif NET45
+            var result = (LivoxLidarRebootResponse)Marshal.PtrToStructure(response, typeof(LivoxLidarRebootResponse));
+#endif
             Console.WriteLine($"RebootCallback, status: {status}, handle: {handle}, ret_code: {result.ret_code}");
         }
 
@@ -359,8 +428,11 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
             if (response == IntPtr.Zero) return;
 
             // 使用非泛型版本的 Marshal.PtrToStructure
-            // var result = (LivoxLidarAsyncControlResponse)Marshal.PtrToStructure(response, typeof(LivoxLidarAsyncControlResponse));
+#if NET9_0_OR_GREATER
             var result = Marshal.PtrToStructure<LivoxLidarAsyncControlResponse>(response);
+#elif NET45
+            var result = (LivoxLidarAsyncControlResponse)Marshal.PtrToStructure(response, typeof(LivoxLidarAsyncControlResponse));
+#endif
             Console.WriteLine($"LivoxLidarIpInfoCallback, status: {status}, handle: {handle}, ret_code: {result.ret_code}, error_key: {result.error_key}");
 
             if (result.ret_code == 0 && result.error_key == 0)
@@ -401,7 +473,11 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
 
             // 使用非泛型版本的 Marshal.PtrToStructure
             // var result = (LivoxLidarDiagInternalInfoResponse)Marshal.PtrToStructure(response, typeof(LivoxLidarDiagInternalInfoResponse));
+#if NET9_0_OR_GREATER
             var result = Marshal.PtrToStructure<LivoxLidarDiagInternalInfoResponse>(response);
+#elif NET45
+            var result = (LivoxLidarDiagInternalInfoResponse)Marshal.PtrToStructure(response, typeof(LivoxLidarDiagInternalInfoResponse));
+#endif
 
             // 处理内部信息
             Console.WriteLine("Query internal info callback.");
@@ -422,8 +498,11 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
             }
 
             // 使用非泛型版本的 Marshal.PtrToStructure
-            // var lidarInfo = (LivoxLidarInfo)Marshal.PtrToStructure(info, typeof(LivoxLidarInfo));
+#if NET9_0_OR_GREATER
             var lidarInfo = Marshal.PtrToStructure<LivoxLidarInfo>(info);
+#elif NET45
+            var lidarInfo = (LivoxLidarInfo)Marshal.PtrToStructure(info, typeof(LivoxLidarInfo));
+#endif
             Console.WriteLine($"LidarInfoChangeCallback Lidar handle: {handle} SN: {lidarInfo.sn}");
 
             // 将工作模式设置为正常模式，即启动 LiDAR
@@ -460,33 +539,68 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
         #endregion
 
         #region 启动与停止
+#if NET9_0_OR_GREATER
         private static CancellationTokenSource? _cancellationTokenSource;
+#elif NET45
+        private static CancellationTokenSource _cancellationTokenSource;
+#endif
+
         /// <summary>
         /// 以配置文件启动并获取点云数据
         /// </summary>
         /// <param name="configFile">配置文件名称</param>
         /// <param name="coordTransParamSet">坐标转换参数集</param>
-        ///// <param name="args">命令行参数</param>
+#if NET9_0_OR_GREATER
         public static void Start(string configFile, CoordTransParamSet? coordTransParamSet = null)
+#elif NET45
+        public static void Start(string configFile, CoordTransParamSet coordTransParamSet = null)
+#endif
         {
+            Start(configFile, out _, coordTransParamSet);
+        }
+
+        /// <summary>
+        /// 以配置文件启动并获取点云数据
+        /// </summary>
+        /// <param name="configFile">配置文件名称</param>
+        /// <param name="coordTransParamSet">坐标转换参数集</param>
+        /// <param name="msg">输出的消息</param>
+#if NET9_0_OR_GREATER
+        public static void Start(string configFile, out string msg, CoordTransParamSet? coordTransParamSet = null)
+#elif NET45
+        public static void Start(string configFile, out string msg, CoordTransParamSet coordTransParamSet = null)
+#endif
+        {
+            msg = string.Empty;
             if (string.IsNullOrWhiteSpace(configFile))
             {
-                Console.WriteLine("Config file Invalid, must input config file path.");
-                return;
+                msg = "Config file Invalid, must input config file path.";
+                goto ERROR;
+                //Console.WriteLine("Config file Invalid, must input config file path.");
+                //return;
             }
             string path = configFile.Contains(Path.VolumeSeparatorChar) ? configFile : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configFile);
             if (!File.Exists(path))
             {
-                Console.WriteLine("Config file does not exist, check again.");
-                return;
+                msg = "Config file does not exist, check again.";
+                goto ERROR;
+                //Console.WriteLine("Config file does not exist, check again.");
+                //return;
             }
 
-            CoordTransParamSet = coordTransParamSet;
+            if (coordTransParamSet!= null)
+                CoordTransParamSet = coordTransParamSet;
+#if NET9_0_OR_GREATER
             LivoxLidarLoggerCfgInfo livoxLidarLoggerCfgInfo = new();
+#elif NET45
+            LivoxLidarLoggerCfgInfo livoxLidarLoggerCfgInfo = new LivoxLidarLoggerCfgInfo();
+#endif
             // 初始化 Livox SDK
             if (!LivoxLidarSdk.LivoxLidarSdkInit(path, "", ref livoxLidarLoggerCfgInfo))
             {
-                Console.WriteLine("Livox Init Failed");
+                msg = "Livox Init Failed";
+                //Console.WriteLine("Livox Init Failed");
+                Console.WriteLine(msg);
                 LivoxLidarSdk.LivoxLidarSdkUninit();
                 return;
             }
@@ -497,10 +611,6 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
             _infoChangeCallback = LidarInfoChangeCallback;
 
             // 设置回调函数
-            //LivoxLidarSdk.SetLivoxLidarPointCloudCallBack(PointCloudCallback, IntPtr.Zero);
-            //LivoxLidarSdk.SetLivoxLidarImuDataCallback(ImuDataCallback, IntPtr.Zero);
-            //LivoxLidarSdk.SetLivoxLidarInfoCallback(LivoxLidarPushMsgCallback, IntPtr.Zero);
-            //LivoxLidarSdk.SetLivoxLidarInfoChangeCallback(LidarInfoChangeCallback, IntPtr.Zero);
             LivoxLidarSdk.SetLivoxLidarPointCloudCallBack(_pointCloudCallback, IntPtr.Zero);
             LivoxLidarSdk.SetLivoxLidarImuDataCallback(_imuDataCallback, IntPtr.Zero);
             LivoxLidarSdk.SetLivoxLidarInfoCallback(_pushMsgCallback, IntPtr.Zero);
@@ -512,10 +622,15 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
             // 使用下划线表示这个任务不需要被等待
             _ = MonitorAndTrimCacheAsync(_cancellationTokenSource.Token);
 
+            msg = "Livox Quick Start Demo Start!";
+
             //// 保持程序运行
             //Thread.Sleep(300000);
 
             //Stop();
+
+        ERROR:
+            Console.WriteLine(msg);
         }
 
         /// <summary>
@@ -527,10 +642,6 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
             _cancellationTokenSource?.Cancel();
 
             // 移除回调前需要保持引用
-            //LivoxLidarSdk.SetLivoxLidarPointCloudCallBack(null, IntPtr.Zero);
-            //LivoxLidarSdk.SetLivoxLidarImuDataCallback(null, IntPtr.Zero);
-            //LivoxLidarSdk.SetLivoxLidarInfoCallback(null, IntPtr.Zero);
-            //LivoxLidarSdk.SetLivoxLidarInfoChangeCallback(null, IntPtr.Zero);
             LivoxLidarSdk.SetLivoxLidarPointCloudCallBack(null, IntPtr.Zero);
             LivoxLidarSdk.SetLivoxLidarImuDataCallback(null, IntPtr.Zero);
             LivoxLidarSdk.SetLivoxLidarInfoCallback(null, IntPtr.Zero);
@@ -549,45 +660,18 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
         #endregion
 
         #region 获取数据快照
-        ///// <summary>
-        ///// 获取当前毫秒（上一毫秒）的数据快照（线程安全）（笛卡尔坐标系高精度坐标点，精度1mm）
-        ///// </summary>
-        ///// <returns></returns>
-        //public static LivoxLidarCartesianHighRawPoint[] GetCurrMillisecHightRawPoints()
-        //{
-        //    //return CartesianHighRawPoints.Take(POINTS_PER_MILLISEC).ToArray();
-        //    return [.. CartesianHighRawPoints.Take(POINTS_PER_MILLISEC)];
-        //}
-
-        ///// <summary>
-        ///// 获取当前毫秒（上一毫秒）的数据快照（线程安全）（笛卡尔坐标系低精度坐标点，精度10mm）
-        ///// </summary>
-        ///// <returns></returns>
-        //public static LivoxLidarCartesianLowRawPoint[] GetCurrMillisecLowtRawPoints()
-        //{
-        //    //return CartesianHighRawPoints.Take(POINTS_PER_MILLISEC).ToArray();
-        //    return [.. CartesianLowRawPoints.Take(POINTS_PER_MILLISEC)];
-        //}
-
-        ///// <summary>
-        ///// 获取当前毫秒（上一毫秒）的数据快照（线程安全）（笛卡尔坐标系高精度坐标点，精度1mm）
-        ///// </summary>
-        ///// <returns></returns>
-        //public static LivoxLidarSpherPoint[] GetCurrMillisecSpherPoints()
-        //{
-        //    //return CartesianHighRawPoints.Take(POINTS_PER_MILLISEC).ToArray();
-        //    return [.. SpherPoints.Take(POINTS_PER_MILLISEC)];
-        //}
 
         /// <summary>
         /// 获取当前帧的数据快照（线程安全）（笛卡尔坐标系高精度坐标点，精度1mm）
         /// </summary>
         public static LivoxLidarCartesianHighRawPoint[] GetCurrentFrameOfHighRawPoints()
         {
-            //lock (_syncRoot)
-            //{
-            //    return [.. CartesianHighRawPoints];
-            //}
+//#if NET9_0_OR_GREATER
+//            return BufferServiceHighRawPoints.SwapAndGetSnapshot();
+//#elif NET45
+//            return CartesianHighRawPoints.ToArray();
+//#endif
+
             return BufferServiceHighRawPoints.SwapAndGetSnapshot();
         }
 
@@ -596,10 +680,12 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
         /// </summary>
         public static LivoxLidarCartesianLowRawPoint[] GetCurrentFrameOfLowRawPoints()
         {
-            //lock (_syncRoot)
-            //{
-            //    return [.. CartesianLowRawPoints];
-            //}
+//#if NET9_0_OR_GREATER
+//            return BufferServiceLowRawPoints.SwapAndGetSnapshot();
+//#elif NET45
+//            return CartesianLowRawPoints.ToArray();
+//#endif
+
             return BufferServiceLowRawPoints.SwapAndGetSnapshot();
         }
 
@@ -608,10 +694,12 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
         /// </summary>
         public static LivoxLidarSpherPoint[] GetCurrentFrameOfSpherPoints()
         {
-            //lock (_syncRoot)
-            //{
-            //    return [.. SpherPoints];
-            //}
+//#if NET9_0_OR_GREATER
+//            return BufferServiceSpherPoints.SwapAndGetSnapshot();
+//#elif NET45
+//            return SpherPoints.ToArray();
+//#endif
+
             return BufferServiceSpherPoints.SwapAndGetSnapshot();
         }
         #endregion
@@ -625,32 +713,36 @@ namespace ScanUtilityLibraryVer2.LivoxSdk2.Samples
             //检查取消请求
             while (!cancellationToken.IsCancellationRequested)
             {
-                //await Task.Delay(1, cancellationToken); // 每毫秒检测一次
-                await Task.Delay(10000, cancellationToken); // 每毫秒检测一次
+                await Task.Delay(1, cancellationToken); // 每毫秒检测一次
 
-                lock (_syncRoot)
-                {
-                    switch (DataType)
-                    {
-                        //case LivoxLidarPointDataType.kLivoxLidarCartesianCoordinateHighData:
-                        //    // 监测高精度列表，并移除超出缓存长度的部分
-                        //    if (CartesianHighRawPoints.Count > PointsPerFrame)
-                        //        CartesianHighRawPoints.RemoveRange(PointsPerFrame, CartesianHighRawPoints.Count - PointsPerFrame);
-                        //    break;
-                        //case LivoxLidarPointDataType.kLivoxLidarCartesianCoordinateLowData:
-                        //    // 监测低精度列表，并移除超出缓存长度的部分
-                        //    if (CartesianLowRawPoints.Count > PointsPerFrame)
-                        //        CartesianLowRawPoints.RemoveRange(PointsPerFrame, CartesianLowRawPoints.Count - PointsPerFrame);
-                        //    break;
-                        //case LivoxLidarPointDataType.kLivoxLidarSphericalCoordinateData:
-                        //    // 监测球坐标列表
-                        //    if (SpherPoints.Count > PointsPerFrame)
-                        //        SpherPoints.RemoveRange(PointsPerFrame, SpherPoints.Count - PointsPerFrame);
-                        //    break;
-                        default:
-                            break;
-                    }
-                }
+#if NET45
+                //// 监测高精度列表，并移除超出缓存长度的部分
+                //if (CartesianHighRawPoints.Count > PointsPerFrame)
+                //    CartesianHighRawPoints.RemoveRange(PointsPerFrame, CartesianHighRawPoints.Count - PointsPerFrame);
+
+                //// 监测低精度列表，并移除超出缓存长度的部分
+                //if (CartesianLowRawPoints.Count > PointsPerFrame)
+                //    CartesianLowRawPoints.RemoveRange(PointsPerFrame, CartesianLowRawPoints.Count - PointsPerFrame);
+
+                //// 监测球坐标列表
+                //if (SpherPoints.Count > PointsPerFrame)
+                //    SpherPoints.RemoveRange(PointsPerFrame, SpherPoints.Count - PointsPerFrame);
+
+                //BufferHeader = string.Format("Frame time(ms): {0}, points / Frame: {1}, actual points (high): {2}", FrameTime, PointsPerFrame, CartesianHighRawPoints.Count);
+#elif NET9_0_OR_GREATER
+                //BufferHeader = string.Format("Frame time(ms): {0}, points / Frame: {1}, actual points (high): {2}", FrameTime, PointsPerFrame, BufferServiceHighRawPoints.SwapAndGetSnapshot().Length);
+#endif
+
+                BufferHeader = string.Format("time: {0:yyyy-MM-dd HH:mm:ss.fff}, Frame time(ms): {1}, points / Frame: {2}, actual points (high): {3}", DateTime.Now, FrameTime, PointsPerFrame, BufferServiceHighRawPoints.SwapAndGetSnapshot().Length);
+
+                //lock (_syncRoot)
+                //{
+                //    switch (DataType)
+                //    {
+                //        default:
+                //            break;
+                //    }
+                //}
 
                 //Console.WriteLine($"高精度点数量: {CartesianHighRawPoints.Count}, 首点XYZ坐标: [{(CartesianHighRawPoints.Count > 0 ? CartesianHighRawPoints[0].x : 0)}], [{(CartesianHighRawPoints.Count > 0 ? CartesianHighRawPoints[0].y : 0)}], [{(CartesianHighRawPoints.Count > 0 ? CartesianHighRawPoints[0].z : 0)}], 低精度点数量: {CartesianLowRawPoints.Count}, 球坐标点数量: {SpherPoints.Count}");
             }
